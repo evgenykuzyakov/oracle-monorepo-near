@@ -1,5 +1,5 @@
 use crate::*;
-use near_sdk::serde::{ Deserialize, Serialize };
+use near_sdk::serde::{Deserialize, Serialize};
 
 const MAX_RESOLUTION_FEE_PERCENTAGE: u32 = 5000; // 5% in 1e5
 
@@ -16,17 +16,15 @@ pub struct FeeConfig {
 #[near_bindgen]
 impl Contract {
     // @notice sets FLUX market cap, TVS, and fee percentage by updating current oracle config
-    // replaces the `fee` field inside oracle config with updated FeeConfig 
-    pub fn update_fee_config(
-        &mut self,
-        new_fee_config: FeeConfig,
-    ) {
+    // replaces the `fee` field inside oracle config with updated FeeConfig
+    pub fn update_fee_config(&mut self, new_fee_config: FeeConfig) {
         self.assert_gov();
 
         let initial_storage = env::storage_usage();
 
         assert!(
-            u128::from(new_fee_config.total_value_staked) < u128::from(new_fee_config.flux_market_cap),
+            u128::from(new_fee_config.total_value_staked)
+                < u128::from(new_fee_config.flux_market_cap),
             "TVS must be lower than market cap"
         );
         assert!(
@@ -37,7 +35,8 @@ impl Contract {
         // get current config and replace fee field
         let mut updated_config = self.get_config();
         updated_config.fee = new_fee_config.clone();
-        self.configs.replace(self.configs.len() - 1, &updated_config);
+        self.configs
+            .replace(self.configs.len() - 1, &updated_config);
 
         logger::log_oracle_config(&updated_config, self.configs.len() - 1);
         helpers::refund_storage(initial_storage, env::predecessor_account_id());
@@ -47,15 +46,15 @@ impl Contract {
 #[cfg(not(target_arch = "wasm32"))]
 #[cfg(test)]
 mod mock_token_basic_tests {
-    use near_sdk::{ MockedBlockchain };
-    use near_sdk::{ testing_env, VMContext };
-    use near_sdk::json_types::U128;
     use super::*;
+    use near_sdk::json_types::U128;
+    use near_sdk::MockedBlockchain;
+    use near_sdk::{testing_env, VMContext};
 
     fn alice() -> AccountId {
         "alice.near".to_string()
     }
-    
+
     fn bob() -> AccountId {
         "bob.near".to_string()
     }
@@ -63,7 +62,7 @@ mod mock_token_basic_tests {
     fn token() -> AccountId {
         "token.near".to_string()
     }
- 
+
     fn gov() -> AccountId {
         "gov.near".to_string()
     }
@@ -83,7 +82,7 @@ mod mock_token_basic_tests {
                 flux_market_cap: U128(50000),
                 total_value_staked: U128(10000),
                 resolution_fee_percentage: 5000, // 5%
-            }
+            },
         }
     }
 
@@ -119,7 +118,7 @@ mod mock_token_basic_tests {
         };
         contract.update_fee_config(new_fee_config);
     }
-    
+
     #[test]
     #[should_panic(expected = "This method is only callable by the governance contract gov.near")]
     fn g_update_fee_invalid() {

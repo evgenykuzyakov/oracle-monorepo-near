@@ -1,18 +1,23 @@
 use crate::*;
 
-use near_sdk::serde::{ Serialize, Deserialize };
+use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::serde_json;
 use near_sdk::PromiseOrValue;
 
 #[derive(Serialize, Deserialize)]
 pub enum Payload {
     NewDataRequest(NewDataRequestArgs),
-    StakeDataRequest(StakeDataRequestArgs)
+    StakeDataRequest(StakeDataRequestArgs),
 }
 
 pub trait FungibleTokenReceiver {
     // @returns amount of unused tokens
-    fn ft_on_transfer(&mut self, sender_id: AccountId, amount: U128, msg: String) -> PromiseOrValue<WrappedBalance>;
+    fn ft_on_transfer(
+        &mut self,
+        sender_id: AccountId,
+        amount: U128,
+        msg: String,
+    ) -> PromiseOrValue<WrappedBalance>;
 }
 
 #[near_bindgen]
@@ -22,15 +27,20 @@ impl FungibleTokenReceiver for Contract {
         &mut self,
         sender_id: AccountId,
         amount: U128,
-        msg: String
+        msg: String,
     ) -> PromiseOrValue<WrappedBalance> {
         let initial_storage_usage = env::storage_usage();
         let account = self.get_storage_account(&sender_id);
 
-        let payload: Payload =  serde_json::from_str(&msg).expect("Failed to parse the payload, invalid `msg` format");
+        let payload: Payload =
+            serde_json::from_str(&msg).expect("Failed to parse the payload, invalid `msg` format");
         let unspent = match payload {
-            Payload::NewDataRequest(payload) => self.ft_dr_new_callback(sender_id.clone(), amount.into(), payload).into(),
-            Payload::StakeDataRequest(payload) => self.dr_stake(sender_id.clone(), amount.into(), payload),
+            Payload::NewDataRequest(payload) => self
+                .ft_dr_new_callback(sender_id.clone(), amount.into(), payload)
+                .into(),
+            Payload::StakeDataRequest(payload) => {
+                self.dr_stake(sender_id.clone(), amount.into(), payload)
+            }
         };
 
         self.use_storage(&sender_id, initial_storage_usage, account.available);
@@ -43,11 +53,11 @@ impl FungibleTokenReceiver for Contract {
 #[cfg(test)]
 mod mock_token_basic_tests {
     use super::*;
-    use std::convert::TryInto;
-    use near_sdk::json_types::ValidAccountId;
-    use near_sdk::{ MockedBlockchain };
-    use near_sdk::{ testing_env, VMContext };
     use crate::storage_manager::StorageManager;
+    use near_sdk::json_types::ValidAccountId;
+    use near_sdk::MockedBlockchain;
+    use near_sdk::{testing_env, VMContext};
+    use std::convert::TryInto;
 
     use fee_config::FeeConfig;
 
@@ -80,7 +90,7 @@ mod mock_token_basic_tests {
             contract_name: account.clone(),
             account_id: account.clone(),
             stake_multiplier: None,
-            code_base_url: None
+            code_base_url: None,
         }
     }
 
@@ -99,7 +109,7 @@ mod mock_token_basic_tests {
                 flux_market_cap: U128(50000),
                 total_value_staked: U128(10000),
                 resolution_fee_percentage: 5000, // 5%
-            }
+            },
         }
     }
 
@@ -125,21 +135,27 @@ mod mock_token_basic_tests {
     }
 
     #[test]
-    #[should_panic(expected = "alice.near has 0 deposited, 4770000000000000000000 is required for this transaction")]
+    #[should_panic(
+        expected = "alice.near has 0 deposited, 4770000000000000000000 is required for this transaction"
+    )]
     fn transfer_storage_no_funds() {
         testing_env!(get_context(token()));
         let whitelist = Some(vec![registry_entry(bob()), registry_entry(carol())]);
         let mut contract = Contract::new(whitelist, config());
 
-        contract.dr_new(bob(), 5, NewDataRequestArgs{
-            sources: Vec::new(),
-            outcomes: Some(vec!["a".to_string(), "b".to_string()].to_vec()),
-            challenge_period: U64(1500),
-            description: Some("a".to_string()),
-            tags: vec!["1".to_string()],
-            data_type: data_request::DataRequestDataType::String,
-            creator: bob(),
-        });
+        contract.dr_new(
+            bob(),
+            5,
+            NewDataRequestArgs {
+                sources: Vec::new(),
+                outcomes: Some(vec!["a".to_string(), "b".to_string()].to_vec()),
+                challenge_period: U64(1500),
+                description: Some("a".to_string()),
+                tags: vec!["1".to_string()],
+                data_type: data_request::DataRequestDataType::String,
+                creator: bob(),
+            },
+        );
 
         let msg = serde_json::json!({
             "StakeDataRequest": {
@@ -156,19 +172,23 @@ mod mock_token_basic_tests {
         let whitelist = Some(vec![registry_entry(bob()), registry_entry(carol())]);
         let mut contract = Contract::new(whitelist, config());
 
-        contract.dr_new(bob(), 5, NewDataRequestArgs{
-            sources: Vec::new(),
-            outcomes: Some(vec!["a".to_string(), "b".to_string()].to_vec()),
-            challenge_period: U64(1500),
-            description: Some("a".to_string()),
-            tags: vec!["1".to_string()],
-            data_type: data_request::DataRequestDataType::String,
-            creator: bob(),
-        });
+        contract.dr_new(
+            bob(),
+            5,
+            NewDataRequestArgs {
+                sources: Vec::new(),
+                outcomes: Some(vec!["a".to_string(), "b".to_string()].to_vec()),
+                challenge_period: U64(1500),
+                description: Some("a".to_string()),
+                tags: vec!["1".to_string()],
+                data_type: data_request::DataRequestDataType::String,
+                creator: bob(),
+            },
+        );
 
         let storage_start = 10u128.pow(24);
 
-        let mut c : VMContext = get_context(alice());
+        let mut c: VMContext = get_context(alice());
         c.attached_deposit = storage_start;
         testing_env!(c);
         contract.storage_deposit(Some(to_valid(alice())));

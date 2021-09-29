@@ -1,38 +1,38 @@
 #![allow(clippy::too_many_arguments)]
 
-use near_sdk::{ AccountId, Balance, env, near_bindgen };
-use near_sdk::borsh::{ self, BorshDeserialize, BorshSerialize };
-use near_sdk::collections::{ Vector, LookupMap };
-use near_sdk::json_types::{ U64, U128 };
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::{LookupMap, Vector};
+use near_sdk::json_types::{U128, U64};
+use near_sdk::{env, near_bindgen, AccountId, Balance};
 
 near_sdk::setup_alloc!();
 
-pub mod types;
-mod resolution_window;
-pub mod data_request;
-mod requester_handler;
-mod fungible_token_receiver;
 pub mod callback_args;
-pub mod whitelist;
-pub mod oracle_config;
-mod storage_manager;
+pub mod data_request;
+pub mod fee_config;
+mod fungible_token_receiver;
 mod helpers;
 mod logger;
+pub mod oracle_config;
+mod requester_handler;
+mod resolution_window;
+mod storage_manager;
+pub mod types;
 mod upgrade;
-pub mod fee_config;
+pub mod whitelist;
 
 /// Mocks
 mod fungible_token;
 
 pub use callback_args::*;
 
-use types::*;
-pub use data_request::{ DataRequest, Source };
-use storage_manager::AccountStorageBalance;
+pub use data_request::{DataRequest, Source};
 pub use requester_handler::Requester;
+use storage_manager::AccountStorageBalance;
+use types::*;
 
 #[near_bindgen]
-#[derive(BorshSerialize, BorshDeserialize )]
+#[derive(BorshSerialize, BorshDeserialize)]
 pub struct Contract {
     pub whitelist: whitelist::Whitelist,
     pub configs: Vector<oracle_config::OracleConfig>,

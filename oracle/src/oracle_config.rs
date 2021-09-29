@@ -1,8 +1,8 @@
 use crate::*;
-use near_sdk::borsh::{ self, BorshDeserialize, BorshSerialize };
-use near_sdk::serde::{ Serialize, Deserialize };
-use near_sdk::{ AccountId };
 use fee_config::FeeConfig;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::serde::{Deserialize, Serialize};
+use near_sdk::AccountId;
 
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone)]
 #[serde(crate = "near_sdk::serde")]
@@ -28,7 +28,7 @@ impl Contract {
     #[payable]
     pub fn set_config(&mut self, new_config: OracleConfig) {
         self.assert_gov();
-                
+
         let initial_storage = env::storage_usage();
 
         self.configs.push(&new_config);
@@ -40,23 +40,27 @@ impl Contract {
 
 impl Contract {
     pub fn assert_sender(&self, expected_sender: &AccountId) {
-        assert_eq!(&env::predecessor_account_id(), expected_sender, "This function can only be called by {}", expected_sender);
+        assert_eq!(
+            &env::predecessor_account_id(),
+            expected_sender,
+            "This function can only be called by {}",
+            expected_sender
+        );
     }
 }
-
 
 #[cfg(not(target_arch = "wasm32"))]
 #[cfg(test)]
 mod mock_token_basic_tests {
-    use near_sdk::{ MockedBlockchain };
-    use near_sdk::{ testing_env, VMContext };
-    use fee_config::FeeConfig;
     use super::*;
-    
+    use fee_config::FeeConfig;
+    use near_sdk::MockedBlockchain;
+    use near_sdk::{testing_env, VMContext};
+
     fn alice() -> AccountId {
         "alice.near".to_string()
     }
-    
+
     fn bob() -> AccountId {
         "bob.near".to_string()
     }
@@ -64,7 +68,7 @@ mod mock_token_basic_tests {
     fn token() -> AccountId {
         "token.near".to_string()
     }
- 
+
     fn gov() -> AccountId {
         "gov.near".to_string()
     }
@@ -84,7 +88,7 @@ mod mock_token_basic_tests {
                 flux_market_cap: U128(50000),
                 total_value_staked: U128(10000),
                 resolution_fee_percentage: 5000, // 5%
-            }
+            },
         }
     }
 

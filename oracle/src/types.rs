@@ -1,6 +1,6 @@
-use near_sdk::json_types::{U64, U128};
-use near_sdk::borsh::{ self, BorshDeserialize, BorshSerialize };
-use near_sdk::serde::{ Deserialize, Serialize };
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::json_types::{U128, U64};
+use near_sdk::serde::{Deserialize, Serialize};
 
 /// Raw type for timestamp in nanoseconds
 pub type Timestamp = u64;
@@ -10,7 +10,7 @@ pub type WrappedBalance = U128;
 
 pub struct ClaimRes {
     pub payment_token_payout: u128,
-    pub stake_token_payout: u128
+    pub stake_token_payout: u128,
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Deserialize, Serialize, Debug, PartialEq, Clone)]
@@ -23,11 +23,11 @@ pub struct AnswerNumberType {
 #[derive(BorshSerialize, BorshDeserialize, Deserialize, Serialize, Debug, PartialEq, Clone)]
 pub enum AnswerType {
     Number(AnswerNumberType),
-    String(String)
+    String(String),
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Deserialize, Serialize, Debug, PartialEq, Clone)]
 pub enum Outcome {
     Answer(AnswerType),
-    Invalid
+    Invalid,
 }

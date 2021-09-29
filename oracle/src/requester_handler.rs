@@ -1,20 +1,25 @@
 use crate::*;
-use near_sdk::{PromiseOrValue, ext_contract, Gas, Promise};
-use near_sdk::serde::{Serialize, Deserialize};
+use near_sdk::serde::{Deserialize, Serialize};
+use near_sdk::{ext_contract, Gas, Promise, PromiseOrValue};
 
 const GAS_BASE_SET_OUTCOME: Gas = 250_000_000_000_000;
 
 #[ext_contract]
 pub trait RequesterContractExtern {
-    fn set_outcome(requester: AccountId, outcome: Outcome, tags: Vec<String>, final_arbitrator_triggered: bool);
+    fn set_outcome(
+        requester: AccountId,
+        outcome: Outcome,
+        tags: Vec<String>,
+        final_arbitrator_triggered: bool,
+    );
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone)]
 pub struct Requester {
     pub contract_name: String,
     pub account_id: AccountId, // Change to account_id
-    pub stake_multiplier: Option<u16>, 
-    pub code_base_url: Option<String>
+    pub stake_multiplier: Option<u16>,
+    pub code_base_url: Option<String>,
 }
 
 #[ext_contract(ext_self)]
@@ -28,24 +33,23 @@ impl Requester {
             contract_name: "".to_string(),
             account_id: account_id.to_string(),
             stake_multiplier: None,
-            code_base_url: None
+            code_base_url: None,
         }
     }
     pub fn set_outcome(
         &self,
         outcome: Outcome,
         tags: Vec<String>,
-        final_arbitrator_triggered: bool
+        final_arbitrator_triggered: bool,
     ) -> Promise {
         requester_contract_extern::set_outcome(
             self.account_id.to_string(),
             outcome,
             tags,
             final_arbitrator_triggered,
-
             // NEAR params
             &self.account_id,
-            1, 
+            1,
             GAS_BASE_SET_OUTCOME / 10,
         )
     }
@@ -53,7 +57,6 @@ impl Requester {
 
 #[near_bindgen]
 impl Contract {
-
     /**
      * @notice called in ft_on_transfer to chain together fetching of TVL and data request creation
      */
@@ -62,7 +65,7 @@ impl Contract {
         &mut self,
         sender: AccountId,
         amount: Balance,
-        payload: NewDataRequestArgs
+        payload: NewDataRequestArgs,
     ) -> PromiseOrValue<WrappedBalance> {
         PromiseOrValue::Value(U128(self.dr_new(sender.clone(), amount.into(), payload)))
     }
