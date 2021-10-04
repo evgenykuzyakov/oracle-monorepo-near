@@ -68,6 +68,7 @@ impl Contract {
 
 impl Contract {
     pub fn assert_gov(&self) {
+        // AUDIT: .iter().last() might be slower than .get(len() - 1)
         let config = self.configs.iter().last().unwrap();
         assert_eq!(
             config.gov,

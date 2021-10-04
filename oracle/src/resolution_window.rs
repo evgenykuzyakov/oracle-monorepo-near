@@ -19,7 +19,7 @@ pub struct CorrectStake {
 
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct ResolutionWindow {
-    pub dr_id: u64,
+    pub dr_id: 4u64,
     pub round: u16,
     pub start_time: Timestamp,
     pub end_time: Timestamp,
@@ -66,6 +66,9 @@ impl ResolutionWindow {
     // @returns amount to refund users because it was not staked
     pub fn stake(&mut self, sender: AccountId, outcome: Outcome, amount: Balance) -> Balance {
         let stake_on_outcome = self.outcome_to_stake.get(&outcome).unwrap_or(0);
+        // AUDIT: No point of storing lookup maps, since they don't have a state except for the
+        //     `prefix`. You can always create a new lookup map, as it's done in `unwrap_or_else`
+        //     and old data will be there.
         let mut user_to_outcomes =
             self.user_to_outcome_to_stake
                 .get(&sender)
@@ -119,6 +122,7 @@ impl ResolutionWindow {
             self.bonded_outcome.is_none() || self.bonded_outcome.as_ref().unwrap() != &outcome,
             "Cannot withdraw from bonded outcome"
         );
+        // AUDIT: Refactor this to a separate method to avoid duplication of initialization.
         let mut user_to_outcomes =
             self.user_to_outcome_to_stake
                 .get(&sender)

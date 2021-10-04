@@ -10,6 +10,8 @@ use crate::{
     requester_handler::Requester, resolution_window::ResolutionWindow, types::*,
 };
 
+// AUDIT: Note, that the maximum log size is 16Kb. If outcome is too large, it may exceed the limit
+//     and the transaction may fail.
 pub fn log_new_data_request(request: &DataRequest) {
     env::log(
         json!({

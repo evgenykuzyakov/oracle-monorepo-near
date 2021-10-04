@@ -10,6 +10,7 @@ pub enum Payload {
     StakeDataRequest(StakeDataRequestArgs),
 }
 
+// AUDIT: This trait is also available from https://github.com/near/near-sdk-rs/tree/master/near-contract-standards
 pub trait FungibleTokenReceiver {
     // @returns amount of unused tokens
     fn ft_on_transfer(
@@ -29,6 +30,7 @@ impl FungibleTokenReceiver for Contract {
         amount: U128,
         msg: String,
     ) -> PromiseOrValue<WrappedBalance> {
+        // AUDIT: Verify that the call is made from the correct fungible token by comparing predecessor_account_id
         let initial_storage_usage = env::storage_usage();
         let account = self.get_storage_account(&sender_id);
 

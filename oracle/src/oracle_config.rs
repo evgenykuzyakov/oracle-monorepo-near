@@ -22,12 +22,14 @@ pub struct OracleConfig {
 #[near_bindgen]
 impl Contract {
     pub fn get_config(&self) -> OracleConfig {
+        // DITTO: Better to use get(len() - 1)
         self.configs.iter().last().unwrap()
     }
 
     #[payable]
     pub fn set_config(&mut self, new_config: OracleConfig) {
         self.assert_gov();
+        // AUDIT: Validate account IDs and other data from the config.
 
         let initial_storage = env::storage_usage();
 

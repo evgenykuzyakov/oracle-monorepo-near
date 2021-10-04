@@ -147,6 +147,8 @@ impl DataRequestChange for DataRequest {
 
     // @returns amount of tokens that didn't get staked
     fn stake(&mut self, sender: AccountId, outcome: Outcome, amount: Balance) -> Balance {
+        // AUDIT: Better to get the last element by index, not sure Vector iter implements hints,
+        // so the following is O(N)
         let mut window = self.resolution_windows.iter().last().unwrap_or_else(|| {
             ResolutionWindow::new(
                 self.id,
@@ -224,6 +226,8 @@ impl DataRequestChange for DataRequest {
         let mut user_correct_stake = 0;
 
         // For any round after the resolution round handle generically
+        // AUDIT: This may run out gas, if the number of windows is too large, because you iterate
+        //     through all windows.
         for round in 0..self.resolution_windows.len() {
             let mut window = self.resolution_windows.get(round).unwrap();
             let stake_state: WindowStakeResult = window.claim_for(
@@ -346,6 +350,7 @@ impl DataRequestView for DataRequest {
 
     fn assert_can_stake_on_outcome(&self, outcome: &Outcome) {
         if self.resolution_windows.len() > 1 {
+            // AUDIT: Why -2?
             let last_window = self
                 .resolution_windows
                 .get(self.resolution_windows.len() - 2)
@@ -539,6 +544,7 @@ impl Contract {
         amount: Balance,
         payload: StakeDataRequestArgs,
     ) -> PromiseOrValue<WrappedBalance> {
+        // AUDIT: `dr_stake` doesn't handle storage, but `dr_unstake` does. Make it consistent.
         let mut dr = self.dr_get_expect(payload.id.into());
         let config = self.configs.get(dr.global_config_id).unwrap();
         self.assert_sender(&config.stake_token);
