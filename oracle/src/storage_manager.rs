@@ -5,6 +5,7 @@ use near_sdk::Promise;
 
 /// Price per 1 byte of storage from mainnet config after `0.18` release and protocol version `42`.
 /// It's 10 times lower than the genesis price.
+// AUDIT: Use `env::STORAGE_PRICE_PER_BYTE`
 pub const STORAGE_PRICE_PER_BYTE: Balance = 10_000_000_000_000_000_000;
 
 pub const STORAGE_MINIMUM_BALANCE: Balance = 10_000_000_000_000_000_000_000;
@@ -58,6 +59,8 @@ impl StorageManager for Contract {
 
         let mut account = self.get_storage_account(&account_id);
 
+        // AUDIT: Validate that the amount is at least the amount to store `AccountStorageBalance`.
+        //     otherwise people can deposit 1 yocto and drain contract storage.
         account.available += amount;
         account.total += amount;
 
@@ -76,6 +79,7 @@ impl StorageManager for Contract {
         let account_id = env::predecessor_account_id();
         let mut account = self.get_storage_account(&account_id);
 
+        // AUDIT: Verify amount >= account.available
         account.available -= amount;
         account.total -= amount;
 
@@ -120,6 +124,7 @@ impl Contract {
         &mut self,
         sender_id: &AccountId,
         initial_storage_usage: u64,
+        // AUDIT: This is available from `self.get_storage_account(sender_id)` below.
         initial_available_balance: u128,
     ) {
         if env::storage_usage() >= initial_storage_usage {
@@ -134,6 +139,7 @@ impl Contract {
                 initial_available_balance,
                 cost
             );
+            // AUDIT: `difference * STORAGE_PRICE_PER_BYTE` is `cost`
             account.available = initial_available_balance - difference * STORAGE_PRICE_PER_BYTE;
 
             self.accounts.insert(sender_id, &account);

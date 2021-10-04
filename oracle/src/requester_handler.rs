@@ -42,6 +42,11 @@ impl Requester {
         tags: Vec<String>,
         final_arbitrator_triggered: bool,
     ) -> Promise {
+        // AUDIT: Suggestions:
+        //     - No need to pass `requester`, since it will be env::current_account_id() for the receiver.
+        //     - Maybe get some unique `request_id`, but I guess it can be part of the `tags`.
+        //     - `1` yoctoNEAR is not necessary, since this callback can only be received from the oracle and not from the user.
+        //     - Gas limit is a bit tight. Ideally there is larger amount of gas that can be configured.
         requester_contract_extern::set_outcome(
             self.account_id.to_string(),
             outcome,
